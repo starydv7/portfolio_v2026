@@ -126,12 +126,20 @@ async function cutoutPortrait(src) {
   }
 
   const out = ctx.createImageData(W, H);
+  const wallR = 246, wallG = 245, wallB = 242;
   for (let i = 0; i < n; i++) {
-    const a = Math.max(0, Math.min(255, Math.round(a0[i] * 255)));
-    out.data[i * 4] = data[i * 4];
-    out.data[i * 4 + 1] = data[i * 4 + 1];
-    out.data[i * 4 + 2] = data[i * 4 + 2];
-    out.data[i * 4 + 3] = a;
+    const a = Math.max(0, Math.min(1, a0[i]));
+    let r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+    if (a > 0.02 && a < 0.98) {
+      const ia = 1 / a;
+      r = (r - wallR * (1 - a)) * ia;
+      g = (g - wallG * (1 - a)) * ia;
+      b = (b - wallB * (1 - a)) * ia;
+    }
+    out.data[i * 4] = Math.max(0, Math.min(255, Math.round(r)));
+    out.data[i * 4 + 1] = Math.max(0, Math.min(255, Math.round(g)));
+    out.data[i * 4 + 2] = Math.max(0, Math.min(255, Math.round(b)));
+    out.data[i * 4 + 3] = Math.max(0, Math.min(255, Math.round(a * 255)));
   }
   ctx.putImageData(out, 0, 0);
   return { w: W, h: H, png: c.toDataURL('image/png'), covered: best / n };
